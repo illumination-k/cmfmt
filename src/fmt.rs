@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use crate::settings::{Lang, Settings};
-use crate::utils::{detect_lang, parse_codetitle, split_frontmatter_and_content};
+use crate::utils::{detect_lang, parse_codetitle, split_frontmatter_and_content, write_string, read_string};
 
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
 use pulldown_cmark_to_cmark::cmark;
@@ -37,10 +37,7 @@ fn fmt_code(code: &String, lang: Lang, title: Option<String>) -> Result<String> 
 
     let dir = tempfile::tempdir().expect("tmp dir error");
     let file_path = dir.path().join(filename);
-    let file = File::create(&file_path).expect("err create file");
-    let mut w = BufWriter::new(&file);
-    write!(w, "{}", code)?;
-    w.flush()?;
+    write_string(&file_path, code)?;
     fmtcommand(lang, &file_path.as_path().to_str().unwrap().to_owned())?;
 
     let new_code = fs::read_to_string(&file_path)?;
