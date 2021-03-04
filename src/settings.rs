@@ -2,14 +2,36 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Settings {
-    fmt: HashMap<String, Lang>,
+    pub fmt: HashMap<String, Lang>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+impl Default for Settings {
+    fn default() -> Self {
+        toml::from_str(
+            r#"
+        # comments!
+        [fmt.rust]
+        command = "rustfmt"
+        name = ["rs", "rust"]
+        
+        [fmt.python]
+        command = "black"
+        name = ["py", "python", "python3"]
+        
+        [fmt.js]
+        command = "eslint"
+        name = ["js", "ts", "javascript", "typescript"]
+        "#,
+        )
+        .unwrap()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Lang {
-    command: String,
-    name: Vec<String>,
-    args: Option<Vec<String>>,
+    pub command: String,
+    pub name: Vec<String>,
+    pub args: Option<Vec<String>>,
 }
 
 impl Lang {
@@ -21,8 +43,20 @@ impl Lang {
             args: match args {
                 Some(v) => Some(v.iter().map(|x| x.to_string()).collect()),
                 None => None,
-            }
+            },
         }
+    }
+
+    pub fn contain_language_name(&self, language_name: &String) -> bool {
+        self.name.contains(language_name)
+    }
+
+    pub fn command(&self) -> String {
+        self.command.clone()
+    }
+
+    pub fn args(&self) -> Option<Vec<String>> {
+        self.args.clone()
     }
 }
 
@@ -52,11 +86,14 @@ mod test {
         )
         .unwrap();
 
-        let expected: HashMap<String, Lang> = convert_args!(keys=String::from, hashmap!(
-            "js" => Lang::new("eslint", vec!["js", "ts", "javascript", "typescript"], None),
-            "python" => Lang::new("black", vec!["py", "python", "python3"], None), 
-            "rust" => Lang::new("rustfmt", vec!["rs", "rust"], None)
-        ));
+        let expected: HashMap<String, Lang> = convert_args!(
+            keys = String::from,
+            hashmap!(
+                "js" => Lang::new("eslint", vec!["js", "ts", "javascript", "typescript"], None),
+                "python" => Lang::new("black", vec!["py", "python", "python3"], None),
+                "rust" => Lang::new("rustfmt", vec!["rs", "rust"], None)
+            )
+        );
 
         assert_eq!(settings, Settings { fmt: expected })
     }

@@ -9,6 +9,7 @@ name: test
 
 ```rust:title
 fn parse_options<'a>(options: &'a ArgMatches) -> CoolToolOptions<'a> {
+    let a = 1;
     CoolToolOptionsBuilder::default()
         .expect(options.values_of("expect").map(|x| x.collect::<Vec<_>>().join(",")),)
         .cmd_prompt(options.values_of("cmd-prompt").and_then(|vals| vals.last()))

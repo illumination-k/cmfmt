@@ -13,16 +13,14 @@ extern crate serde;
 
 use anyhow::Result;
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
-use std::{
-    fs::{self, File},
-    io::{BufWriter, Write},
-    process::Command,
-};
+use std::{fs::{self, File}, io::{BufWriter, Write}, process::{Command, Stdio}};
 use tempfile;
 
 use pulldown_cmark_to_cmark::cmark;
 
 mod settings;
+
+use crate::settings::{Lang, Settings};
 
 pub fn find_frontmatter_block(text: &str) -> Option<(usize, usize)> {
     match text.starts_with("---\n") {
@@ -57,33 +55,45 @@ fn parse_codetitle<S: ToString>(s: &S) -> (String, String) {
     (language, title)
 }
 
-#[derive(Debug, Clone)]
-struct PreCode {
-    language: String,
-    title: String,
-    text: String,
-}
 
-impl PreCode {
-    fn new<S: ToString>(code_title: &S, text: &S) -> Self {
-        let (language, title) = parse_codetitle(code_title);
-        Self {
-            language,
-            title,
-            text: text.to_string(),
+fn detect_lang(lang_name: &String, settings: &Settings) -> Option<Lang> {
+    let lang_name = lang_name.to_lowercase();
+    let mut lang = None;
+
+    for l in settings.fmt.values() {
+        if l.contain_language_name(&lang_name) {
+            lang = Some(l.clone())
         }
     }
+
+    lang
 }
 
-fn fmtcommand_build(language: &str) -> Command {
-    let language = language.to_lowercase();
-    if language == "rust" {
-        Command::new("rustfmt")
-    } else if language == "python" {
-        Command::new("black")
-    } else {
-        Command::new("cat")
+fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
+    let mut args = vec![file_path.to_owned()];
+    match lang.args() {
+        Some(a) => args.extend_from_slice(&a),
+        None => {}
     }
+    let child = Command::new(lang.command()).args(&args).stderr(Stdio::piped()).stdout(Stdio::piped()).spawn()?;
+    let output = child.wait_with_output()?;
+    eprintln!("Run Command: {} {}", lang.command(), args.join(" "));
+    eprintln!("stderr: {}", std::str::from_utf8(&output.stderr)?);
+    eprintln!("stdout: {}\n", std::str::from_utf8(&output.stdout)?);
+    Ok(())
+}
+
+fn fmt_code(code: &String, lang: Lang) -> Result<String> {
+    let dir = tempfile::tempdir().expect("tmp dir error");
+    let file_path = dir.path().join("tmp");
+    let file = File::create(&file_path).expect("err create file");
+    let mut w = BufWriter::new(&file);
+    write!(w, "{}", code)?;
+    w.flush()?;
+    fmtcommand(lang, &file_path.as_path().to_str().unwrap().to_owned())?;
+
+    let new_code = fs::read_to_string(&file_path)?;
+    Ok(new_code)
 }
 
 fn main() -> Result<()> {
@@ -94,8 +104,6 @@ fn main() -> Result<()> {
 
     let mut now_range = 0..0;
     let mut now_codetitle = "".to_string();
-    let mut now_text = "".to_string();
-    let mut codes = vec![];
 
     let mut events = vec![];
     for (e, r) in parser.into_offset_iter() {
@@ -110,38 +118,18 @@ fn main() -> Result<()> {
                 let start = r.start;
                 let end = r.end;
                 if now_range.start <= start && end <= now_range.end {
-                    let mut text = s.to_string();
-                    now_text = text.clone();
-                    let (language, _) = parse_codetitle(&now_codetitle);
-                    dbg!(&language);
-                    if language.to_lowercase() == "rust" {
-                        let dir = tempfile::tempdir().expect("tmpdir error");
-                        let file_path = dir.path().join("tmp.rs");
-                        let file = File::create(&file_path).expect("err create file");
-                        let mut w = BufWriter::new(&file);
-                        dbg!(&text);
-                        write!(w, "{}", text)?;
-                        w.flush()?;
-                        let status = Command::new("rustfmt")
-                            .arg(file_path.to_str().unwrap())
-                            .status()?;
-                        println!("{}", status);
-                        let new_text = fs::read_to_string(&file_path)?;
-                        dbg!(&new_text);
-                        text = new_text;
-                    }
-                    // make tmpfile and fmt by rustfmt, black and prelitter
-                    Event::Text(text.into())
+                    let code = s.to_string();
+                    let (lang_name, _) = parse_codetitle(&now_codetitle);
+                    let lang = match detect_lang(&lang_name, &Settings::default()) {
+                        Some(l) => l,
+                        None => {continue;}
+                    };
+
+                    let fmt_code = fmt_code(&code, lang)?;
+                    Event::Text(fmt_code.into())
                 } else {
                     Event::Text(s.to_owned())
                 }
-            }
-            Event::End(Tag::CodeBlock(CodeBlockKind::Fenced(s))) => {
-                if r == now_range {
-                    let code = PreCode::new(&now_codetitle, &now_text);
-                    codes.push(code);
-                }
-                Event::End(Tag::CodeBlock(CodeBlockKind::Fenced(s.to_owned())))
             }
             _ => e.clone(),
         };
@@ -153,9 +141,6 @@ fn main() -> Result<()> {
         Some(s) => s.to_string(),
         None => String::new(),
     };
-
-    // test codes by cargo test, pytest and node.js
-    // run code selected by title
 
     cmark(events.iter(), &mut buf, None).unwrap();
     println!("{}", buf.replace("````", "```"));
