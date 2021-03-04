@@ -13,14 +13,29 @@ extern crate serde;
 
 use anyhow::Result;
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
-use std::{fs::{self, File}, io::{BufWriter, Write}, process::{Command, Stdio}};
+use std::{fs::{self, File}, io::{BufWriter, Write}, path::PathBuf, process::{Command, Stdio}};
 use tempfile;
-
+use structopt::{clap, StructOpt};
 use pulldown_cmark_to_cmark::cmark;
 
 mod settings;
+mod utils;
+mod fmt;
 
 use crate::settings::{Lang, Settings};
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "mcfmt")]
+#[structopt(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
+#[structopt(setting(clap::AppSettings::ColoredHelp))]
+pub struct Opt {
+    #[structopt(name = "markdown")]
+    pub input: PathBuf,
+    #[structopt(long = "config")]
+    pub config: Option<PathBuf>,
+    #[structopt(long = "stdout")]
+    pub stdout: bool,
+}
 
 pub fn find_frontmatter_block(text: &str) -> Option<(usize, usize)> {
     match text.starts_with("---\n") {
@@ -96,9 +111,8 @@ fn fmt_code(code: &String, lang: Lang) -> Result<String> {
     Ok(new_code)
 }
 
-fn main() -> Result<()> {
-    let text = fs::read_to_string("test/raw_markdown.md")?;
-    let (frontmatter, content) = split_frontmatter_and_content(&text);
+fn fmt(text: &String) -> Result<String> {
+    let (frontmatter, content) = split_frontmatter_and_content(text);
     let options = Options::empty();
     let parser = Parser::new_ext(&content, options);
 
@@ -142,8 +156,18 @@ fn main() -> Result<()> {
         None => String::new(),
     };
 
-    cmark(events.iter(), &mut buf, None).unwrap();
-    println!("{}", buf.replace("````", "```"));
+    cmark(events.iter(), &mut buf, None)?;
+    Ok(buf.replace("````", "```"))
+}
+
+fn main() -> Result<()> {
+    let opt = Opt::from_args();
+
+    let text = fs::read_to_string(&opt.input)?;
+    
+    let fmt_text = fmt(&text)?;
+
+    println!("{}", fmt_text);
     Ok(())
 }
 
