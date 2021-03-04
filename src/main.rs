@@ -11,6 +11,7 @@ extern crate maplit;
 extern crate serde;
 
 use anyhow::Result;
+use utils::write_string;
 
 use std::{
     env::var,
@@ -71,6 +72,7 @@ fn main() -> Result<()> {
     if (&opt.stdout).to_owned() {
         println!("{}", fmt_text);
     } else {
+        write_string(&opt.input, &fmt_text)?;
     }
 
     Ok(())

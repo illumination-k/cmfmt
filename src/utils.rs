@@ -1,6 +1,10 @@
-use anyhow::Result;
-use std::{fs::File, io::{BufReader, BufWriter, Read, Write}, path::Path};
 use crate::settings::{Lang, Settings};
+use anyhow::Result;
+use std::{
+    fs::File,
+    io::{BufReader, BufWriter, Read, Write},
+    path::Path,
+};
 
 pub fn write_string<P: AsRef<Path>>(p: &P, string: &String) -> Result<()> {
     let file = File::create(&p).expect("File create error!");
@@ -17,7 +21,6 @@ pub fn read_string<P: AsRef<Path>>(p: &P) -> Result<String> {
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }
-
 
 pub fn find_frontmatter_block(text: &str) -> Option<(usize, usize)> {
     match text.starts_with("---\n") {

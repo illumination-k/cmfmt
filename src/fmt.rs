@@ -1,15 +1,13 @@
 use anyhow::Result;
 
 use crate::settings::{Lang, Settings};
-use crate::utils::{detect_lang, parse_codetitle, split_frontmatter_and_content, write_string, read_string};
+use crate::utils::{
+    detect_lang, parse_codetitle, read_string, split_frontmatter_and_content, write_string,
+};
 
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
 use pulldown_cmark_to_cmark::cmark;
-use std::{
-    fs::{self, File},
-    io::{BufWriter, Write},
-    process::{Command, Stdio},
-};
+use std::process::{Command, Stdio};
 
 fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
     let mut args = vec![file_path.to_owned()];
@@ -40,7 +38,7 @@ fn fmt_code(code: &String, lang: Lang, title: Option<String>) -> Result<String> 
     write_string(&file_path, code)?;
     fmtcommand(lang, &file_path.as_path().to_str().unwrap().to_owned())?;
 
-    let new_code = fs::read_to_string(&file_path)?;
+    let new_code = read_string(&file_path)?;
     Ok(new_code)
 }
 
