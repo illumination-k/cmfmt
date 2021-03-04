@@ -1,10 +1,11 @@
-# [[fmt]]
-
 [fmt.rust]
 command = "rustfmt"
+name = ["rs", "rust"]
 
 [fmt.python]
 command = "black"
+name = ["py", "python", "python3"]
 
 [fmt.js]
 command = "eslint"
+name = ["js", "ts", "javascript", "typescript"]
