@@ -1,0 +1,10 @@
+# [[fmt]]
+
+[fmt.rust]
+command = "rustfmt"
+
+[fmt.python]
+command = "black"
+
+[fmt.js]
+command = "eslint"

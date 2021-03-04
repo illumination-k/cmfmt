@@ -9,4 +9,10 @@ edition = "2018"
 [dependencies]
 anyhow = "*"
 pulldown-cmark = "0.8"
-mecab = "*"
+pulldown-cmark-to-cmark = "*"
+tempfile = "*"
+toml = "0.5"
+serde = { version = "1.0", features = ["derive"]}
+
+[dev-dependencies]
+maplit = "*"
