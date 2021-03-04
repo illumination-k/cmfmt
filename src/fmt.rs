@@ -1,11 +1,15 @@
 use anyhow::Result;
 
 use crate::settings::{Lang, Settings};
-use crate::utils::{split_frontmatter_and_content, detect_lang, parse_codetitle};
+use crate::utils::{detect_lang, parse_codetitle, split_frontmatter_and_content};
 
-use std::{fs::{self, File}, io::{BufWriter, Write}, process::{Command, Stdio}};
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
 use pulldown_cmark_to_cmark::cmark;
+use std::{
+    fs::{self, File},
+    io::{BufWriter, Write},
+    process::{Command, Stdio},
+};
 
 fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
     let mut args = vec![file_path.to_owned()];
@@ -13,7 +17,11 @@ fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
         Some(a) => args.extend_from_slice(&a),
         None => {}
     }
-    let child = Command::new(lang.command()).args(&args).stderr(Stdio::piped()).stdout(Stdio::piped()).spawn()?;
+    let child = Command::new(lang.command())
+        .args(&args)
+        .stderr(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
     let output = child.wait_with_output()?;
     eprintln!("Run Command: {} {}", lang.command(), args.join(" "));
     eprintln!("stderr: {}", std::str::from_utf8(&output.stderr)?);
@@ -21,9 +29,14 @@ fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
     Ok(())
 }
 
-fn fmt_code(code: &String, lang: Lang) -> Result<String> {
+fn fmt_code(code: &String, lang: Lang, title: Option<String>) -> Result<String> {
+    let filename = match title {
+        Some(t) => t,
+        None => "tmp_code".to_string(),
+    };
+
     let dir = tempfile::tempdir().expect("tmp dir error");
-    let file_path = dir.path().join("tmp");
+    let file_path = dir.path().join(filename);
     let file = File::create(&file_path).expect("err create file");
     let mut w = BufWriter::new(&file);
     write!(w, "{}", code)?;
@@ -34,7 +47,7 @@ fn fmt_code(code: &String, lang: Lang) -> Result<String> {
     Ok(new_code)
 }
 
-pub fn fmt(text: &String) -> Result<String> {
+pub fn fmt(text: &String, settings: &Settings) -> Result<String> {
     let (frontmatter, content) = split_frontmatter_and_content(text);
     let options = Options::empty();
     let parser = Parser::new_ext(&content, options);
@@ -56,13 +69,15 @@ pub fn fmt(text: &String) -> Result<String> {
                 let end = r.end;
                 if now_range.start <= start && end <= now_range.end {
                     let code = s.to_string();
-                    let (lang_name, _) = parse_codetitle(&now_codetitle);
-                    let lang = match detect_lang(&lang_name, &Settings::default()) {
+                    let (lang_name, title) = parse_codetitle(&now_codetitle);
+                    let lang = match detect_lang(&lang_name, settings) {
                         Some(l) => l,
-                        None => {continue;}
+                        None => {
+                            continue;
+                        }
                     };
 
-                    let fmt_code = fmt_code(&code, lang)?;
+                    let fmt_code = fmt_code(&code, lang, title)?;
                     Event::Text(fmt_code.into())
                 } else {
                     Event::Text(s.to_owned())

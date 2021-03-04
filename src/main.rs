@@ -1,7 +1,6 @@
 extern crate anyhow;
 extern crate pulldown_cmark;
 extern crate pulldown_cmark_to_cmark;
-
 extern crate toml;
 
 #[cfg(test)]
@@ -13,16 +12,20 @@ extern crate serde;
 
 use anyhow::Result;
 
-use std::{fs, path::PathBuf};
+use std::{
+    env::var,
+    fs,
+    path::{Path, PathBuf},
+    process::exit,
+};
 use structopt::{clap, StructOpt};
 
-
+mod fmt;
 mod settings;
 mod utils;
-mod fmt;
 
 use crate::fmt::fmt;
-
+use crate::settings::{read_settings, write_default_settings, Settings};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "mcfmt")]
@@ -40,10 +43,35 @@ pub struct Opt {
 fn main() -> Result<()> {
     let opt = Opt::from_args();
 
-    let text = fs::read_to_string(&opt.input)?;
-    
-    let fmt_text = fmt(&text)?;
+    let settings: Settings = match &opt.config {
+        Some(config) => read_settings(config)?,
+        None => {
+            let home = match var("HOME") {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("Cannot find $HOME: {}", e);
+                    exit(1)
+                }
+            };
 
-    println!("{}", fmt_text);
+            let config_path = Path::new(&home).join(".config/mcfmt.toml");
+
+            if !config_path.exists() {
+                eprintln!("write default settings in {:?}", config_path);
+                write_default_settings(&config_path)?;
+            }
+
+            read_settings(&config_path)?
+        }
+    };
+
+    let text = fs::read_to_string(&opt.input)?;
+    let fmt_text = fmt(&text, &settings)?;
+
+    if (&opt.stdout).to_owned() {
+        println!("{}", fmt_text);
+    } else {
+    }
+
     Ok(())
 }

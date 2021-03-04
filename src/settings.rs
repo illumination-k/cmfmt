@@ -1,4 +1,10 @@
-use std::collections::HashMap;
+use anyhow::Result;
+use std::{
+    collections::HashMap,
+    fs,
+    io::{BufReader, Read, Write},
+    path::Path,
+};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Settings {
@@ -58,6 +64,25 @@ impl Lang {
     pub fn args(&self) -> Option<Vec<String>> {
         self.args.clone()
     }
+}
+
+pub fn read_settings<P: AsRef<Path>>(config: &P) -> Result<Settings> {
+    let mut buf = String::new();
+    let mut file = fs::File::open(config).map(|f| BufReader::new(f))?;
+
+    file.read_to_string(&mut buf)?;
+
+    let settings = toml::from_str(&buf)?;
+    Ok(settings)
+}
+
+pub fn write_default_settings<P: AsRef<Path>>(config: &P) -> Result<()> {
+    let mut file = fs::File::create(config)?;
+    let default_settings = Settings::default();
+    let toml = toml::to_string(&default_settings)?;
+    write!(file, "{}", toml)?;
+    file.flush()?;
+    Ok(())
 }
 
 #[cfg(test)]

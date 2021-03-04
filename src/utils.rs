@@ -22,17 +22,16 @@ pub fn split_frontmatter_and_content(text: &str) -> (Option<&str>, &str) {
     }
 }
 
-pub fn parse_codetitle<S: ToString>(s: &S) -> (String, String) {
+pub fn parse_codetitle<S: ToString>(s: &S) -> (String, Option<String>) {
     let s = s.to_string();
     let v: Vec<&str> = s.split(":").collect();
     let language = v[0].to_string();
     let title = match v.get(1) {
-        Some(s) => s.to_string(),
-        None => "".to_string(),
+        Some(s) => Some(s.to_string()),
+        None => None,
     };
     (language, title)
 }
-
 
 pub fn detect_lang(lang_name: &String, settings: &Settings) -> Option<Lang> {
     let lang_name = lang_name.to_lowercase();
