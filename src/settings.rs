@@ -1,8 +1,5 @@
 use anyhow::Result;
-use std::{
-    collections::HashMap,
-    path::Path,
-};
+use std::{collections::HashMap, path::Path};
 
 use crate::utils::{read_string, write_string};
 
