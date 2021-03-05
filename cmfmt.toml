@@ -4,6 +4,7 @@ name = ["rs", "rust"]
 
 [fmt.python]
 command = "black"
+args = ["-l", "80"]
 name = ["py", "python", "python3"]
 
 [fmt.js]
