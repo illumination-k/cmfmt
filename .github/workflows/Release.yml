@@ -35,7 +35,7 @@ jobs:
         uses: svenstaro/upload-release-action@2.1.1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/x86_64-unknown-linux-musl/release/alnflt
-          asset_name: alnflt_x86_64-unknown-linux-musl
+          file: target/x86_64-unknown-linux-musl/release/cmfmt
+          asset_name: cmfmt_x86_64-unknown-linux-musl
           tag: ${{ github.ref }}
           overwrite: true
