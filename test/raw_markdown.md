@@ -28,8 +28,6 @@ fn parse_options<'a>(options: &'a ArgMatches) -> CoolToolOptions<'a> {
 print(input())
 ```
 
-~iii~
-
-`code`
-
-[url](example)
+```
+aaa
+```
