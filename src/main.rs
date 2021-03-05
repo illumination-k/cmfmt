@@ -55,7 +55,7 @@ fn main() -> Result<()> {
                 }
             };
 
-            let config_path = Path::new(&home).join(".config/mcfmt.toml");
+            let config_path = Path::new(&home).join(".config/cmfmt.toml");
 
             if !config_path.exists() {
                 eprintln!("write default settings in {:?}", config_path);
