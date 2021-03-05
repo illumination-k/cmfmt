@@ -29,7 +29,7 @@ use crate::fmt::fmt;
 use crate::settings::{read_settings, write_default_settings, Settings};
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "mcfmt")]
+#[structopt(name = "cmfmt")]
 #[structopt(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
 #[structopt(setting(clap::AppSettings::ColoredHelp))]
 pub struct Opt {

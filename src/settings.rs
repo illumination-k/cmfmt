@@ -3,6 +3,24 @@ use std::{collections::HashMap, path::Path};
 
 use crate::utils::{read_string, write_string};
 
+pub const DEFAULT_SETTINGS: &'static str = r#"
+[fmt.python]
+command = "black"
+name = ["py", "python", "python3"]
+extention = "py"
+
+[fmt.rust]
+command = "rustfmt"
+name = ["rs", "rust"]
+extention = "rs"
+
+[fmt.js]
+command = "prettier"
+args = ["--write"]
+name = ["js", "ts", "javascript", "typescript"]
+extention = "js"
+"#;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Settings {
     pub fmt: HashMap<String, Lang>,
@@ -10,23 +28,7 @@ pub struct Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        toml::from_str(
-            r#"
-            [fmt.python]
-            command = "black"
-            name = ["py", "python", "python3"]
-            
-            [fmt.rust]
-            command = "rustfmt"
-            name = ["rs", "rust"]
-            
-            [fmt.js]
-            command = "prettier"
-            args = ["--write"]
-            name = ["js", "ts", "javascript", "typescript"]            
-        "#,
-        )
-        .unwrap()
+        toml::from_str(DEFAULT_SETTINGS).unwrap()
     }
 }
 
@@ -103,26 +105,7 @@ mod test {
 
     #[test]
     fn test_serialize() {
-        let settings: Settings = toml::from_str(
-            r#"
-            [fmt.python]
-            command = "black"
-            name = ["py", "python", "python3"]
-            extention = "py"
-            
-            [fmt.rust]
-            command = "rustfmt"
-            name = ["rs", "rust"]
-            extention = "rs"
-
-            [fmt.js]
-            command = "prettier"
-            args = ["--write"]
-            name = ["js", "ts", "javascript", "typescript"]
-            extention = "js"
-            "#,
-        )
-        .unwrap();
+        let settings: Settings = toml::from_str(DEFAULT_SETTINGS).unwrap();
 
         let expected: HashMap<String, Lang> = convert_args!(
             keys = String::from,
