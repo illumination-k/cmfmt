@@ -65,14 +65,12 @@ pub fn fmt(text: &String, settings: &Settings) -> Result<String> {
                 if now_range.start <= start && end <= now_range.end {
                     let code = s.to_string();
                     let (lang_name, title) = parse_codetitle(&now_codetitle);
-                    let lang = match detect_lang(&lang_name, settings) {
-                        Some(l) => l,
-                        None => {
-                            continue;
-                        }
-                    };
+                    let lang = detect_lang(&lang_name, settings);
 
-                    let fmt_code = fmt_code(&code, lang, title)?;
+                    let fmt_code = match lang {
+                        Some(l) => fmt_code(&code, l, title)?,
+                        None => code,
+                    };
                     Event::Text(fmt_code.into())
                 } else {
                     Event::Text(s.to_owned())
