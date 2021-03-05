@@ -91,5 +91,5 @@ pub fn fmt(text: &String, settings: &Settings) -> Result<String> {
     };
 
     cmark(events.iter(), &mut buf, None)?;
-    Ok(buf.replace("````", "```"))
+    Ok(buf)
 }
