@@ -35,7 +35,7 @@ pub struct Lang {
     pub command: String,
     pub name: Vec<String>,
     pub args: Option<Vec<String>>,
-    pub ext: Option<String>,
+    pub extention: Option<String>,
 }
 
 impl Lang {
@@ -48,7 +48,7 @@ impl Lang {
                 Some(v) => Some(v.iter().map(|x| x.to_string()).collect()),
                 None => None,
             },
-            ext: match ext {
+            extention: match ext {
                 Some(s) => Some(s.to_string()),
                 None => None,
             },
@@ -68,7 +68,7 @@ impl Lang {
     }
 
     pub fn ext(&self) -> Option<String> {
-        match self.ext.clone() {
+        match self.extention.clone() {
             Some(ext) => {
                 if ext.starts_with(".") {
                     Some(ext)
