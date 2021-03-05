@@ -33,11 +33,20 @@ use crate::settings::{read_settings, write_default_settings, Settings};
 #[structopt(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
 #[structopt(setting(clap::AppSettings::ColoredHelp))]
 pub struct Opt {
-    #[structopt(name = "markdown", help = "Path of the input markdown you would like to format")]
+    #[structopt(
+        name = "markdown",
+        help = "Path of the input markdown you would like to format"
+    )]
     pub input: PathBuf,
-    #[structopt(long = "config", help = "Path of the config file. default: ${home}/.config/cmfmt.toml")]
+    #[structopt(
+        long = "config",
+        help = "Path of the config file. default: ${home}/.config/cmfmt.toml"
+    )]
     pub config: Option<PathBuf>,
-    #[structopt(long = "stdout", help = "Output formatted markdown to stdout instead of overwrite the input markdown")]
+    #[structopt(
+        long = "stdout",
+        help = "Output formatted markdown to stdout instead of overwrite the input markdown"
+    )]
     pub stdout: bool,
 }
 

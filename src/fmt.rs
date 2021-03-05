@@ -30,7 +30,10 @@ fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
 fn fmt_code(code: &String, lang: Lang, title: Option<String>) -> Result<String> {
     let filename = match title {
         Some(t) => t,
-        None => "tmp_code".to_string(),
+        None => match &lang.ext() {
+            Some(ext) => format!("tmp_code{}", ext),
+            None => "tmp_code".to_string(),
+        },
     };
 
     let dir = tempfile::tempdir().expect("tmp dir error");

@@ -28,6 +28,6 @@ fn parse_options<'a>(options: &'a ArgMatches) -> CoolToolOptions<'a> {
 print(input())
 ```
 
-```
-aaa
+```js:test.js
+console.log("hello")
 ```
