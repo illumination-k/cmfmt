@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 
-pub fn write_string<P: AsRef<Path>>(p: &P, string: &String) -> Result<()> {
+pub fn write_string<P: AsRef<Path>>(p: &P, string: &str) -> Result<()> {
     let file = File::create(&p).expect("File create error!");
     let mut w = BufWriter::new(&file);
     write!(w, "{}", string)?;
@@ -55,7 +55,7 @@ pub fn parse_codetitle<S: ToString>(s: &S) -> (String, Option<String>) {
     (language, title)
 }
 
-pub fn detect_lang(lang_name: &String, settings: &Settings) -> Option<Lang> {
+pub fn detect_lang(lang_name: &str, settings: &Settings) -> Option<Lang> {
     let lang_name = lang_name.to_lowercase();
     let mut lang = None;
 

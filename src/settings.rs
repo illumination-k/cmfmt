@@ -72,7 +72,7 @@ impl Lang {
     pub fn ext(&self) -> Option<String> {
         match self.extention.clone() {
             Some(ext) => {
-                if ext.starts_with(".") {
+                if ext.starts_with('.') {
                     Some(ext)
                 } else {
                     Some(format!(".{}", ext))
