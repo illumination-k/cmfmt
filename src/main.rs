@@ -1,4 +1,5 @@
 extern crate anyhow;
+extern crate dirs;
 extern crate pulldown_cmark;
 extern crate pulldown_cmark_to_cmark;
 extern crate toml;
@@ -14,7 +15,6 @@ use anyhow::Result;
 use utils::write_string;
 
 use std::{
-    env::var,
     fs,
     path::{Path, PathBuf},
     process::exit,
@@ -56,10 +56,10 @@ fn main() -> Result<()> {
     let settings: Settings = match &opt.config {
         Some(config) => read_settings(config)?,
         None => {
-            let home = match var("HOME") {
-                Ok(s) => s,
-                Err(e) => {
-                    eprintln!("Cannot find $HOME: {}", e);
+            let home = match dirs::home_dir() {
+                Some(p) => p,
+                None => {
+                    eprintln!("Cannot find home dir");
                     exit(1)
                 }
             };

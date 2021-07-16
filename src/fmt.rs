@@ -9,7 +9,7 @@ use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
 use pulldown_cmark_to_cmark::cmark;
 use std::process::{Command, Stdio};
 
-fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
+fn fmtcommand(lang: Lang, file_path: &str) -> Result<()> {
     let mut args = vec![file_path.to_owned()];
 
     if let Some(ext_args) = lang.args() {
