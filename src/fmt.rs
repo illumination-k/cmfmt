@@ -11,10 +11,11 @@ use std::process::{Command, Stdio};
 
 fn fmtcommand(lang: Lang, file_path: &String) -> Result<()> {
     let mut args = vec![file_path.to_owned()];
-    match lang.args() {
-        Some(a) => args.extend_from_slice(&a),
-        None => {}
+
+    if let Some(ext_args) = lang.args() {
+        args.extend_from_slice(&ext_args);
     }
+
     let child = Command::new(lang.command())
         .args(&args)
         .stderr(Stdio::piped())
